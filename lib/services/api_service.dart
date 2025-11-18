@@ -21,6 +21,20 @@ class ApiService {
     return headers;
   }
 
+  // Get current user info
+  Future<User> getCurrentUser() async {
+    final response = await http.get(
+      Uri.parse('${ApiConfig.buddypressBaseUrl}/members/me'),
+      headers: _headers,
+    ).timeout(ApiConfig.requestTimeout);
+
+    if (response.statusCode == 200) {
+      return User.fromJson(jsonDecode(response.body));
+    } else {
+      throw Exception('Failed to get current user: ${response.body}');
+    }
+  }
+
   // Authentication
   Future<Map<String, dynamic>> login(String username, String password) async {
     final response = await http.post(

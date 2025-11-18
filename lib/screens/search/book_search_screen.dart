@@ -100,12 +100,12 @@ class _BookSearchScreenState extends State<BookSearchScreen> {
                         segments: const [
                           ButtonSegment(
                             value: false,
-                            label: Text('Search'),
+                            label: Text('Title/Author'),
                             icon: Icon(Icons.search),
                           ),
                           ButtonSegment(
                             value: true,
-                            label: Text('ISBN'),
+                            label: Text('Find by ISBN'),
                             icon: Icon(Icons.qr_code),
                           ),
                         ],
@@ -120,6 +120,31 @@ class _BookSearchScreenState extends State<BookSearchScreen> {
                       ),
                     ),
                   ],
+                ),
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.blue[50],
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.info_outline, size: 16, color: Colors.blue[700]),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          _isISBNSearch
+                              ? 'Find books in the GRead database by ISBN'
+                              : 'Search for books to add to your library',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.blue[900],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
                 const SizedBox(height: 16),
                 if (!_isISBNSearch)
@@ -140,9 +165,10 @@ class _BookSearchScreenState extends State<BookSearchScreen> {
                   TextField(
                     controller: _isbnController,
                     decoration: InputDecoration(
-                      hintText: 'Enter ISBN...',
+                      hintText: 'Enter ISBN (e.g., 9780316129084)...',
                       prefixIcon: const Icon(Icons.qr_code),
                       border: const OutlineInputBorder(),
+                      helperText: 'Looks up books in the database',
                       suffixIcon: IconButton(
                         icon: const Icon(Icons.send),
                         onPressed: _searchByISBN,

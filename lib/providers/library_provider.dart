@@ -37,13 +37,31 @@ class LibraryProvider with ChangeNotifier {
     try {
       final response = await _apiService.getLibrary();
 
-      final List<dynamic> booksData = response['books'] ?? [];
-      _books = booksData.map((json) => LibraryBook.fromJson(json)).toList();
+      // Handle different response formats
+      if (response is Map<String, dynamic>) {
+        final booksData = response['books'];
+        if (booksData is List) {
+          _books = booksData
+              .map((json) => LibraryBook.fromJson(json as Map<String, dynamic>))
+              .toList();
+        } else {
+          _books = [];
+        }
 
-      _totalBooks = response['total_books'] ?? 0;
-      _reading = response['reading'] ?? 0;
-      _completed = response['completed'] ?? 0;
-      _wantToRead = response['want_to_read'] ?? 0;
+        _totalBooks = response['total_books'] ?? 0;
+        _reading = response['reading'] ?? 0;
+        _completed = response['completed'] ?? 0;
+        _wantToRead = response['want_to_read'] ?? 0;
+      } else if (response is List) {
+        // Response is directly a list of books
+        _books = response
+            .map((json) => LibraryBook.fromJson(json as Map<String, dynamic>))
+            .toList();
+        _totalBooks = _books.length;
+        _reading = _books.where((b) => b.status == 'reading').length;
+        _completed = _books.where((b) => b.status == 'completed').length;
+        _wantToRead = _books.where((b) => b.status == 'want_to_read').length;
+      }
 
       _isLoading = false;
       notifyListeners();

@@ -18,6 +18,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _displayNameController = TextEditingController();
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
+  bool _acceptedTOS = false;
 
   @override
   void dispose() {
@@ -30,6 +31,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   Future<void> _handleRegister() async {
+    if (!_acceptedTOS) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please accept the Terms of Service'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
     if (_formKey.currentState!.validate()) {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
@@ -56,14 +67,42 @@ class _RegisterScreenState extends State<RegisterScreen> {
         );
         Navigator.of(context).pop();
       } else {
+        // Extract user-friendly error message
+        String errorMessage = authProvider.error ?? 'Registration failed';
+        if (errorMessage.contains('username already exists')) {
+          errorMessage = 'Sorry, that username is already taken. Please choose another.';
+        } else if (errorMessage.contains('email')) {
+          errorMessage = 'This email address is already registered.';
+        }
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(authProvider.error ?? 'Registration failed'),
+            content: Text(errorMessage),
             backgroundColor: Colors.red,
+            duration: const Duration(seconds: 5),
           ),
         );
       }
     }
+  }
+
+  void _openTOS() async {
+    // Note: In a production app, use url_launcher package to open gread.fun/tos
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Terms of Service'),
+        content: const Text(
+          'Please visit gread.fun/tos to read our full Terms of Service.\n\nBy registering, you agree to our terms and conditions.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -194,6 +233,39 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     }
                     return null;
                   },
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Checkbox(
+                      value: _acceptedTOS,
+                      onChanged: (value) {
+                        setState(() {
+                          _acceptedTOS = value ?? false;
+                        });
+                      },
+                    ),
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: _openTOS,
+                        child: RichText(
+                          text: TextSpan(
+                            style: DefaultTextStyle.of(context).style,
+                            children: [
+                              const TextSpan(text: 'I accept the '),
+                              TextSpan(
+                                text: 'Terms of Service',
+                                style: TextStyle(
+                                  color: Theme.of(context).colorScheme.primary,
+                                  decoration: TextDecoration.underline,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 24),
                 Consumer<AuthProvider>(
