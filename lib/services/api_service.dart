@@ -164,7 +164,41 @@ class ApiService {
     ).timeout(ApiConfig.requestTimeout);
 
     if (response.statusCode == 200) {
-      return jsonDecode(response.body);
+      final decodedResponse = jsonDecode(response.body);
+
+      // Handle case where API returns a List instead of a Map
+      if (decodedResponse is List) {
+        // Calculate stats from the book statuses
+        int readingCount = 0;
+        int completedCount = 0;
+        int wantToReadCount = 0;
+
+        for (var book in decodedResponse) {
+          if (book is Map<String, dynamic>) {
+            final status = book['status'] ?? '';
+            if (status == 'reading') {
+              readingCount++;
+            } else if (status == 'completed') {
+              completedCount++;
+            } else if (status == 'want_to_read') {
+              wantToReadCount++;
+            }
+          }
+        }
+
+        // Convert List response to expected Map format
+        return {
+          'books': decodedResponse,
+          'total_books': decodedResponse.length,
+          'reading': readingCount,
+          'completed': completedCount,
+          'want_to_read': wantToReadCount,
+        };
+      } else if (decodedResponse is Map<String, dynamic>) {
+        return decodedResponse;
+      } else {
+        throw Exception('Unexpected response format: ${decodedResponse.runtimeType}');
+      }
     } else {
       throw Exception('Failed to load library: ${response.body}');
     }
