@@ -7,6 +7,7 @@ class AuthProvider with ChangeNotifier {
   final ApiService _apiService = ApiService();
 
   String? _token;
+  int? _userId;
   String? _username;
   String? _displayName;
   String? _email;
@@ -14,6 +15,7 @@ class AuthProvider with ChangeNotifier {
   String? _error;
 
   String? get token => _token;
+  int? get userId => _userId;
   String? get username => _username;
   String? get displayName => _displayName;
   String? get email => _email;
@@ -27,9 +29,24 @@ class AuthProvider with ChangeNotifier {
 
   Future<void> _loadAuthData() async {
     _token = await _storageService.getToken();
+    final userIdStr = await _storageService.getUserId();
+    _userId = userIdStr != null ? int.tryParse(userIdStr) : null;
     _username = await _storageService.getUsername();
     _displayName = await _storageService.getDisplayName();
     _email = await _storageService.getEmail();
+
+    // If we have a token but no user ID, fetch it
+    if (_token != null && _userId == null) {
+      try {
+        final apiService = ApiService(token: _token);
+        final user = await apiService.getCurrentUser();
+        _userId = user.id;
+        await _storageService.saveUserId(_userId.toString());
+      } catch (e) {
+        // Ignore error - will try again later
+      }
+    }
+
     notifyListeners();
   }
 
@@ -52,6 +69,16 @@ class AuthProvider with ChangeNotifier {
         displayName: _displayName,
         email: _email,
       );
+
+      // Get user ID
+      try {
+        final apiService = ApiService(token: _token);
+        final user = await apiService.getCurrentUser();
+        _userId = user.id;
+        await _storageService.saveUserId(_userId.toString());
+      } catch (e) {
+        // Ignore - will get it later
+      }
 
       _isLoading = false;
       notifyListeners();
@@ -96,6 +123,7 @@ class AuthProvider with ChangeNotifier {
   Future<void> logout() async {
     await _storageService.clearAuthData();
     _token = null;
+    _userId = null;
     _username = null;
     _displayName = null;
     _email = null;
