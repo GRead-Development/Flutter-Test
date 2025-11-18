@@ -43,21 +43,19 @@ class ActivityProvider with ChangeNotifier {
       // Handle different response formats
       List<Activity> newActivities = [];
 
-      if (response['activities'] != null) {
-        final activitiesData = response['activities'];
-        if (activitiesData is List) {
-          newActivities = activitiesData
-              .map((json) => Activity.fromJson(json as Map<String, dynamic>))
-              .toList();
-        } else if (activitiesData is Map) {
-          // Single activity wrapped in an object
-          newActivities = [Activity.fromJson(activitiesData as Map<String, dynamic>)];
+      if (response is Map<String, dynamic>) {
+        if (response['activities'] != null) {
+          final activitiesData = response['activities'];
+          if (activitiesData is List) {
+            newActivities = activitiesData
+                .map((json) => Activity.fromJson(json as Map<String, dynamic>))
+                .toList();
+          } else if (activitiesData is Map) {
+            // Single activity wrapped in an object
+            newActivities = [Activity.fromJson(activitiesData as Map<String, dynamic>)];
+          }
         }
-      } else if (response is List) {
-        // Response is directly a list of activities
-        newActivities = response
-            .map((json) => Activity.fromJson(json as Map<String, dynamic>))
-            .toList();
+        _totalPages = response['pages'] ?? 1;
       }
 
       if (refresh) {
@@ -65,8 +63,6 @@ class ActivityProvider with ChangeNotifier {
       } else {
         _activities.addAll(newActivities);
       }
-
-      _totalPages = (response is Map) ? (response['pages'] ?? 1) : 1;
 
       _isLoading = false;
       notifyListeners();

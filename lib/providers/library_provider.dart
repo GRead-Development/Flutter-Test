@@ -52,15 +52,13 @@ class LibraryProvider with ChangeNotifier {
         _reading = response['reading'] ?? 0;
         _completed = response['completed'] ?? 0;
         _wantToRead = response['want_to_read'] ?? 0;
-      } else if (response is List) {
-        // Response is directly a list of books
-        _books = response
-            .map((json) => LibraryBook.fromJson(json as Map<String, dynamic>))
-            .toList();
-        _totalBooks = _books.length;
-        _reading = _books.where((b) => b.status == 'reading').length;
-        _completed = _books.where((b) => b.status == 'completed').length;
-        _wantToRead = _books.where((b) => b.status == 'want_to_read').length;
+      } else {
+        // Fallback - empty library
+        _books = [];
+        _totalBooks = 0;
+        _reading = 0;
+        _completed = 0;
+        _wantToRead = 0;
       }
 
       _isLoading = false;
