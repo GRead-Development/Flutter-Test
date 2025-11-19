@@ -75,18 +75,41 @@ class LibraryBook extends Book {
   });
 
   factory LibraryBook.fromJson(Map<String, dynamic> json) {
+    // Handle nested book structure from API
+    final bookData = json['book'] as Map<String, dynamic>?;
+    final useNestedStructure = bookData != null;
+
+    final int pageCount = useNestedStructure
+        ? (bookData['page_count'] ?? 0)
+        : (json['page_count'] ?? 0);
+    final int currentPage = json['current_page'] ?? 0;
+
+    // Calculate progress percentage if not provided
+    double progressPercentage = (json['progress_percentage'] ?? 0.0).toDouble();
+    if (progressPercentage == 0.0 && pageCount > 0 && currentPage > 0) {
+      progressPercentage = (currentPage / pageCount * 100).clamp(0.0, 100.0);
+    }
+
     return LibraryBook(
-      id: json['book_id'] ?? json['id'] ?? 0,
-      title: json['title'] ?? '',
-      author: json['author'] ?? '',
-      isbn: json['isbn'],
-      pageCount: json['page_count'],
-      description: json['description'] ?? json['content'],
-      coverImage: json['cover_image'],
-      permalink: json['permalink'],
-      publicationYear: json['publication_year'],
-      currentPage: json['current_page'] ?? 0,
-      progressPercentage: (json['progress_percentage'] ?? 0.0).toDouble(),
+      id: useNestedStructure
+          ? (bookData['id'] ?? 0)
+          : (json['book_id'] ?? json['id'] ?? 0),
+      title: useNestedStructure
+          ? (bookData['title'] ?? '')
+          : (json['title'] ?? ''),
+      author: useNestedStructure
+          ? (bookData['author'] ?? '')
+          : (json['author'] ?? ''),
+      isbn: useNestedStructure ? bookData['isbn'] : json['isbn'],
+      pageCount: pageCount,
+      description: useNestedStructure
+          ? (bookData['description'] ?? bookData['content'])
+          : (json['description'] ?? json['content']),
+      coverImage: useNestedStructure ? bookData['cover_image'] : json['cover_image'],
+      permalink: useNestedStructure ? bookData['permalink'] : json['permalink'],
+      publicationYear: useNestedStructure ? bookData['publication_year'] : json['publication_year'],
+      currentPage: currentPage,
+      progressPercentage: progressPercentage,
       status: json['status'] ?? 'want_to_read',
       addedDate: json['added_date'],
       lastUpdated: json['last_updated'],

@@ -36,24 +36,32 @@ class LibraryProvider with ChangeNotifier {
 
     try {
       final response = await _apiService.getLibrary();
+      print('Library API Response: $response');
 
       // Handle different response formats
       if (response is Map<String, dynamic>) {
         final booksData = response['books'];
+        print('Books data type: ${booksData.runtimeType}');
+        print('Books data: $booksData');
+
         if (booksData is List) {
           _books = booksData
               .map((json) => LibraryBook.fromJson(json as Map<String, dynamic>))
               .toList();
+          print('Parsed ${_books.length} books');
         } else {
           _books = [];
+          print('Books data is not a List, setting empty');
         }
 
         _totalBooks = response['total_books'] ?? 0;
         _reading = response['reading'] ?? 0;
         _completed = response['completed'] ?? 0;
         _wantToRead = response['want_to_read'] ?? 0;
+        print('Stats - Total: $_totalBooks, Reading: $_reading, Completed: $_completed, Want to Read: $_wantToRead');
       } else {
         // Fallback - empty library
+        print('Response is not a Map, setting empty library');
         _books = [];
         _totalBooks = 0;
         _reading = 0;
@@ -64,6 +72,7 @@ class LibraryProvider with ChangeNotifier {
       _isLoading = false;
       notifyListeners();
     } catch (e) {
+      print('Library load error: $e');
       _error = e.toString();
       _isLoading = false;
       notifyListeners();

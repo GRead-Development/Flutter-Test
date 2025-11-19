@@ -158,16 +158,26 @@ class ApiService {
 
   // Library
   Future<Map<String, dynamic>> getLibrary() async {
+    final url = '${ApiConfig.greadBaseUrl}/library';
+    print('Fetching library from: $url');
+    print('Using token: ${token != null ? "Yes (${token!.substring(0, 10)}...)" : "No"}');
+
     final response = await http.get(
-      Uri.parse('${ApiConfig.greadBaseUrl}/library'),
+      Uri.parse(url),
       headers: _headers,
     ).timeout(ApiConfig.requestTimeout);
 
+    print('Library response status: ${response.statusCode}');
+    print('Library response body: ${response.body}');
+
     if (response.statusCode == 200) {
       final decodedResponse = jsonDecode(response.body);
+      print('Decoded response type: ${decodedResponse.runtimeType}');
 
       // Handle case where API returns a List instead of a Map
       if (decodedResponse is List) {
+        print('Response is a List with ${decodedResponse.length} items');
+
         // Calculate stats from the book statuses
         int readingCount = 0;
         int completedCount = 0;
@@ -195,6 +205,7 @@ class ApiService {
           'want_to_read': wantToReadCount,
         };
       } else if (decodedResponse is Map<String, dynamic>) {
+        print('Response is a Map');
         return decodedResponse;
       } else {
         throw Exception('Unexpected response format: ${decodedResponse.runtimeType}');
@@ -222,14 +233,21 @@ class ApiService {
     required int bookId,
     required int currentPage,
   }) async {
+    final url = '${ApiConfig.greadBaseUrl}/library/progress';
+    print('Updating progress for book $bookId to page $currentPage');
+    print('POST to: $url');
+
     final response = await http.post(
-      Uri.parse('${ApiConfig.greadBaseUrl}/library/progress'),
+      Uri.parse(url),
       headers: _headers,
       body: jsonEncode({
         'book_id': bookId,
         'current_page': currentPage,
       }),
     ).timeout(ApiConfig.requestTimeout);
+
+    print('Update progress response status: ${response.statusCode}');
+    print('Update progress response body: ${response.body}');
 
     if (response.statusCode == 200) {
       return jsonDecode(response.body);
@@ -239,10 +257,17 @@ class ApiService {
   }
 
   Future<void> removeBookFromLibrary(int bookId) async {
+    final url = '${ApiConfig.greadBaseUrl}/library/remove?book_id=$bookId';
+    print('Removing book $bookId from library');
+    print('DELETE to: $url');
+
     final response = await http.delete(
-      Uri.parse('${ApiConfig.greadBaseUrl}/library/remove?book_id=$bookId'),
+      Uri.parse(url),
       headers: _headers,
     ).timeout(ApiConfig.requestTimeout);
+
+    print('Remove book response status: ${response.statusCode}');
+    print('Remove book response body: ${response.body}');
 
     if (response.statusCode != 200 && response.statusCode != 204) {
       throw Exception('Failed to remove book: ${response.body}');
