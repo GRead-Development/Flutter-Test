@@ -5,8 +5,13 @@ import 'package:gread_app/providers/library_provider.dart';
 
 class BookSearchItem extends StatelessWidget {
   final Book book;
+  final bool selectMode;
 
-  const BookSearchItem({super.key, required this.book});
+  const BookSearchItem({
+    super.key,
+    required this.book,
+    this.selectMode = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -51,15 +56,24 @@ class BookSearchItem extends StatelessWidget {
           ],
         ],
       ),
-      trailing: ElevatedButton.icon(
-        onPressed: () => _addToLibrary(context),
-        icon: const Icon(Icons.add, size: 18),
-        label: const Text('Add'),
-        style: ElevatedButton.styleFrom(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        ),
-      ),
-      onTap: () => _showBookDetails(context),
+      trailing: selectMode
+          ? ElevatedButton.icon(
+              onPressed: () => _selectBook(context),
+              icon: const Icon(Icons.check, size: 18),
+              label: const Text('Select'),
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              ),
+            )
+          : ElevatedButton.icon(
+              onPressed: () => _addToLibrary(context),
+              icon: const Icon(Icons.add, size: 18),
+              label: const Text('Add'),
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              ),
+            ),
+      onTap: selectMode ? () => _selectBook(context) : () => _showBookDetails(context),
     );
   }
 
@@ -71,8 +85,14 @@ class BookSearchItem extends StatelessWidget {
         color: Colors.grey[300],
         borderRadius: BorderRadius.circular(4),
       ),
-      child: const Icon(Icons.book, color: Colors.white),
     );
+  }
+
+  void _selectBook(BuildContext context) {
+    Navigator.pop(context, {
+      'id': book.id,
+      'title': book.title,
+    });
   }
 
   void _addToLibrary(BuildContext context) async {

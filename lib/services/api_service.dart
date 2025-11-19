@@ -316,4 +316,20 @@ class ApiService {
       throw Exception('Failed to lookup ISBN: ${response.body}');
     }
   }
+
+  // Mentions
+  Future<List<Map<String, dynamic>>> searchUsersForMention(String query) async {
+    final response = await http.get(
+      Uri.parse('${ApiConfig.greadBaseUrl}/mentions/search?query=${Uri.encodeComponent(query)}&limit=10'),
+      headers: _headers,
+    ).timeout(ApiConfig.requestTimeout);
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      final List<dynamic> users = data['users'] ?? [];
+      return users.cast<Map<String, dynamic>>();
+    } else {
+      throw Exception('Failed to search users: ${response.body}');
+    }
+  }
 }

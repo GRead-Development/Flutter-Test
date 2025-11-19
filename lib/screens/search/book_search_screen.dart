@@ -6,7 +6,9 @@ import 'package:gread_app/models/book.dart';
 import 'package:gread_app/widgets/book_search_item.dart';
 
 class BookSearchScreen extends StatefulWidget {
-  const BookSearchScreen({super.key});
+  final bool selectMode;
+
+  const BookSearchScreen({super.key, this.selectMode = false});
 
   @override
   State<BookSearchScreen> createState() => _BookSearchScreenState();
@@ -248,7 +250,10 @@ class _BookSearchScreenState extends State<BookSearchScreen> {
       itemCount: _searchResults.length,
       separatorBuilder: (_, __) => const Divider(height: 1),
       itemBuilder: (context, index) {
-        return BookSearchItem(book: _searchResults[index]);
+        return BookSearchItem(
+          book: _searchResults[index],
+          selectMode: widget.selectMode,
+        );
       },
     );
   }

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:gread_app/providers/activity_provider.dart';
+import 'package:gread_app/providers/auth_provider.dart';
+import 'package:gread_app/services/api_service.dart';
+import 'package:gread_app/screens/search/book_search_screen.dart';
 
 class NewActivityScreen extends StatefulWidget {
   const NewActivityScreen({super.key});
@@ -11,11 +14,147 @@ class NewActivityScreen extends StatefulWidget {
 
 class _NewActivityScreenState extends State<NewActivityScreen> {
   final _contentController = TextEditingController();
+  final _focusNode = FocusNode();
+  List<Map<String, dynamic>> _mentionSuggestions = [];
+  bool _showMentionSuggestions = false;
+  String _currentMentionQuery = '';
+  int _mentionStartPosition = -1;
+
+  @override
+  void initState() {
+    super.initState();
+    _contentController.addListener(_onTextChanged);
+  }
 
   @override
   void dispose() {
+    _contentController.removeListener(_onTextChanged);
     _contentController.dispose();
+    _focusNode.dispose();
     super.dispose();
+  }
+
+  void _onTextChanged() {
+    final text = _contentController.text;
+    final cursorPosition = _contentController.selection.baseOffset;
+
+    if (cursorPosition < 0) return;
+
+    // Find @ symbol before cursor
+    int atIndex = -1;
+    for (int i = cursorPosition - 1; i >= 0; i--) {
+      if (text[i] == '@') {
+        atIndex = i;
+        break;
+      }
+      if (text[i] == ' ' || text[i] == '\n') {
+        break;
+      }
+    }
+
+    if (atIndex >= 0) {
+      final query = text.substring(atIndex + 1, cursorPosition);
+      if (query.isEmpty || !query.contains(' ')) {
+        _mentionStartPosition = atIndex;
+        _currentMentionQuery = query;
+        _searchUsers(query);
+        return;
+      }
+    }
+
+    // Hide suggestions if not in mention mode
+    if (_showMentionSuggestions) {
+      setState(() {
+        _showMentionSuggestions = false;
+        _mentionSuggestions = [];
+      });
+    }
+  }
+
+  Future<void> _searchUsers(String query) async {
+    if (query.isEmpty) {
+      setState(() {
+        _showMentionSuggestions = false;
+        _mentionSuggestions = [];
+      });
+      return;
+    }
+
+    try {
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final apiService = ApiService(token: authProvider.token);
+      final users = await apiService.searchUsersForMention(query);
+
+      setState(() {
+        _mentionSuggestions = users;
+        _showMentionSuggestions = users.isNotEmpty;
+      });
+    } catch (e) {
+      // Silently fail - mentions are not critical
+      setState(() {
+        _showMentionSuggestions = false;
+        _mentionSuggestions = [];
+      });
+    }
+  }
+
+  void _insertMention(Map<String, dynamic> user) {
+    final String username = user['username'] ?? '';
+    final text = _contentController.text;
+    final newText = text.substring(0, _mentionStartPosition) +
+        '@$username ' +
+        text.substring(_contentController.selection.baseOffset);
+
+    final int newCursorPosition = (_mentionStartPosition + username.length + 2) as int;
+
+    _contentController.value = TextEditingValue(
+      text: newText,
+      selection: TextSelection.collapsed(offset: newCursorPosition),
+    );
+
+    setState(() {
+      _showMentionSuggestions = false;
+      _mentionSuggestions = [];
+    });
+
+    _focusNode.requestFocus();
+  }
+
+  void _insertBookMention(int bookId, String bookTitle) {
+    final int cursorPosition = _contentController.selection.baseOffset;
+    final text = _contentController.text;
+    final String mention = '#[book-id-$bookId:$bookTitle]';
+
+    final newText = text.substring(0, cursorPosition) +
+        mention +
+        ' ' +
+        text.substring(cursorPosition);
+
+    final int newCursorPosition = (cursorPosition + mention.length + 1) as int;
+
+    _contentController.value = TextEditingValue(
+      text: newText,
+      selection: TextSelection.collapsed(offset: newCursorPosition),
+    );
+
+    _focusNode.requestFocus();
+  }
+
+  Future<void> _showBookMentionDialog() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const BookSearchScreen(selectMode: true),
+      ),
+    );
+
+    if (result != null && result is Map<String, dynamic>) {
+      final bookId = result['id'];
+      final bookTitle = result['title'];
+      if (bookId != null && bookTitle != null) {
+        _insertBookMention(bookId, bookTitle);
+      }
+    }
   }
 
   Future<void> _postActivity() async {
@@ -49,6 +188,11 @@ class _NewActivityScreenState extends State<NewActivityScreen> {
       appBar: AppBar(
         title: const Text('New Post'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.book),
+            tooltip: 'Mention a book',
+            onPressed: _showBookMentionDialog,
+          ),
           Consumer<ActivityProvider>(
             builder: (context, provider, _) {
               return TextButton(
@@ -71,15 +215,63 @@ class _NewActivityScreenState extends State<NewActivityScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Expanded(
-              child: TextField(
-                controller: _contentController,
-                maxLines: null,
-                expands: true,
-                textAlignVertical: TextAlignVertical.top,
-                decoration: const InputDecoration(
-                  hintText: 'What\'s on your mind? Share a book update...',
-                  border: InputBorder.none,
-                ),
+              child: Stack(
+                children: [
+                  TextField(
+                    controller: _contentController,
+                    focusNode: _focusNode,
+                    maxLines: null,
+                    expands: true,
+                    textAlignVertical: TextAlignVertical.top,
+                    decoration: const InputDecoration(
+                      hintText: 'What\'s on your mind? Share a book update...',
+                      border: InputBorder.none,
+                    ),
+                  ),
+                  if (_showMentionSuggestions)
+                    Positioned(
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      child: Container(
+                        constraints: const BoxConstraints(maxHeight: 200),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          border: Border.all(color: Colors.grey[300]!),
+                          borderRadius: BorderRadius.circular(8),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: ListView.builder(
+                          shrinkWrap: true,
+                          itemCount: _mentionSuggestions.length,
+                          itemBuilder: (context, index) {
+                            final user = _mentionSuggestions[index];
+                            return ListTile(
+                              leading: CircleAvatar(
+                                backgroundImage: user['avatar_url'] != null
+                                    ? NetworkImage(user['avatar_url'])
+                                    : null,
+                                child: user['avatar_url'] == null
+                                    ? Text(
+                                        (user['display_name'] ?? '?')[0]
+                                            .toUpperCase())
+                                    : null,
+                              ),
+                              title: Text(user['display_name'] ?? ''),
+                              subtitle: Text('@${user['username'] ?? ''}'),
+                              onTap: () => _insertMention(user),
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                ],
               ),
             ),
             const SizedBox(height: 16),
@@ -101,11 +293,11 @@ class _NewActivityScreenState extends State<NewActivityScreen> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    '• Mention books: #[book-id-123:Book Title]',
+                    '• Mention users: Type @ to search users',
                     style: TextStyle(fontSize: 12, color: Colors.blue[900]),
                   ),
                   Text(
-                    '• Mention users: @username',
+                    '• Mention books: #[book-id-123:Book Title]',
                     style: TextStyle(fontSize: 12, color: Colors.blue[900]),
                   ),
                 ],

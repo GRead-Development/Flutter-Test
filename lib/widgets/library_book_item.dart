@@ -76,7 +76,6 @@ class LibraryBookItem extends StatelessWidget {
         color: Colors.grey[300],
         borderRadius: BorderRadius.circular(4),
       ),
-      child: const Icon(Icons.book, color: Colors.white),
     );
   }
 
