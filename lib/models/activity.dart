@@ -26,6 +26,21 @@ class Activity {
   });
 
   factory Activity.fromJson(Map<String, dynamic> json) {
+    // Parse children - handle both List and Map formats
+    List<Activity> childrenList = [];
+    final childrenData = json['children'];
+
+    if (childrenData is List) {
+      // Normal case: children is a list
+      childrenList = childrenData
+          .map((e) => Activity.fromJson(e as Map<String, dynamic>))
+          .toList();
+    } else if (childrenData is Map) {
+      // Edge case: children is a map/object, not a list
+      // Skip or handle as needed - usually means no children
+      childrenList = [];
+    }
+
     return Activity(
       id: json['id'] ?? 0,
       userId: json['user_id'] ?? 0,
@@ -37,10 +52,7 @@ class Activity {
       dateRecorded: json['date_recorded'] ?? '',
       displayName: json['display_name'] ?? '',
       userFullname: json['user_fullname'] ?? '',
-      children: (json['children'] as List<dynamic>?)
-              ?.map((e) => Activity.fromJson(e as Map<String, dynamic>))
-              .toList() ??
-          [],
+      children: childrenList,
     );
   }
 
