@@ -57,14 +57,7 @@ class BookSearchItem extends StatelessWidget {
         ],
       ),
       trailing: selectMode
-          ? ElevatedButton.icon(
-              onPressed: () => _selectBook(context),
-              icon: const Icon(Icons.check, size: 18),
-              label: const Text('Select'),
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              ),
-            )
+          ? const Icon(Icons.chevron_right, color: Colors.grey)
           : ElevatedButton.icon(
               onPressed: () => _addToLibrary(context),
               icon: const Icon(Icons.add, size: 18),
@@ -89,6 +82,7 @@ class BookSearchItem extends StatelessWidget {
   }
 
   void _selectBook(BuildContext context) {
+    print('_selectBook called for: ${book.title} (ID: ${book.id})');
     Navigator.pop(context, {
       'id': book.id,
       'title': book.title,

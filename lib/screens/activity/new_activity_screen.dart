@@ -107,23 +107,29 @@ class _NewActivityScreenState extends State<NewActivityScreen> {
 
     final int newCursorPosition = (_mentionStartPosition + username.length + 2) as int;
 
-    _contentController.value = TextEditingValue(
-      text: newText,
-      selection: TextSelection.collapsed(offset: newCursorPosition),
-    );
+    // Unfocus first to prevent Flutter web focus conflicts
+    _focusNode.unfocus();
 
     setState(() {
       _showMentionSuggestions = false;
       _mentionSuggestions = [];
     });
 
-    _focusNode.requestFocus();
+    // Update text after unfocusing
+    _contentController.value = TextEditingValue(
+      text: newText,
+      selection: TextSelection.collapsed(offset: newCursorPosition),
+    );
   }
 
   void _insertBookMention(int bookId, String bookTitle) {
+    print('_insertBookMention called with bookId: $bookId, title: $bookTitle');
     final int cursorPosition = _contentController.selection.baseOffset;
     final text = _contentController.text;
     final String mention = '#[book-id-$bookId:$bookTitle]';
+
+    print('Current text: "$text", cursor at: $cursorPosition');
+    print('Mention to insert: "$mention"');
 
     final newText = text.substring(0, cursorPosition) +
         mention +
@@ -132,12 +138,13 @@ class _NewActivityScreenState extends State<NewActivityScreen> {
 
     final int newCursorPosition = (cursorPosition + mention.length + 1) as int;
 
+    print('New text: "$newText", new cursor at: $newCursorPosition');
+
+    // Update text controller
     _contentController.value = TextEditingValue(
       text: newText,
       selection: TextSelection.collapsed(offset: newCursorPosition),
     );
-
-    _focusNode.requestFocus();
   }
 
   Future<void> _showBookMentionDialog() async {
@@ -148,9 +155,12 @@ class _NewActivityScreenState extends State<NewActivityScreen> {
       ),
     );
 
+    print('Book selection result: $result');
+
     if (result != null && result is Map<String, dynamic>) {
       final bookId = result['id'];
       final bookTitle = result['title'];
+      print('Book ID: $bookId, Title: $bookTitle');
       if (bookId != null && bookTitle != null) {
         _insertBookMention(bookId, bookTitle);
       }

@@ -89,6 +89,9 @@ class _BookSearchScreenState extends State<BookSearchScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: Text(widget.selectMode ? 'Select a Book' : 'Search Books'),
+      ),
       body: Column(
         children: [
           Padding(
