@@ -14,8 +14,15 @@ class UserStats {
   });
 
   factory UserStats.fromJson(Map<String, dynamic> json) {
+    int parseUserId(dynamic value) {
+      if (value == null) return 0;
+      if (value is int) return value;
+      if (value is String) return int.tryParse(value) ?? 0;
+      return 0;
+    }
+
     return UserStats(
-      userId: json['user_id'] ?? 0,
+      userId: parseUserId(json['user_id']),
       username: json['username'] ?? '',
       statistics: Statistics.fromJson(json['statistics'] ?? {}),
       favoriteGenres: (json['favorite_genres'] as List<dynamic>?)
@@ -57,16 +64,23 @@ class Statistics {
   });
 
   factory Statistics.fromJson(Map<String, dynamic> json) {
+    int parseInt(dynamic value) {
+      if (value == null) return 0;
+      if (value is int) return value;
+      if (value is String) return int.tryParse(value) ?? 0;
+      return 0;
+    }
+
     return Statistics(
-      booksRead: json['books_read'] ?? 0,
-      pagesRead: json['pages_read'] ?? 0,
-      booksInLibrary: json['books_in_library'] ?? 0,
-      currentlyReading: json['currently_reading'] ?? 0,
-      booksAddedToDb: json['books_added_to_db'] ?? 0,
-      averagePagesPerBook: json['average_pages_per_book'] ?? 0,
-      readingStreakDays: json['reading_streak_days'] ?? 0,
-      achievementsUnlocked: json['achievements_unlocked'] ?? 0,
-      totalAchievementPoints: json['total_achievement_points'] ?? 0,
+      booksRead: parseInt(json['books_read']),
+      pagesRead: parseInt(json['pages_read']),
+      booksInLibrary: parseInt(json['books_in_library']),
+      currentlyReading: parseInt(json['currently_reading']),
+      booksAddedToDb: parseInt(json['books_added_to_db']),
+      averagePagesPerBook: parseInt(json['average_pages_per_book']),
+      readingStreakDays: parseInt(json['reading_streak_days']),
+      achievementsUnlocked: parseInt(json['achievements_unlocked']),
+      totalAchievementPoints: parseInt(json['total_achievement_points']),
       memberSince: json['member_since'],
       lastActivity: json['last_activity'],
     );
@@ -80,9 +94,16 @@ class GenreCount {
   GenreCount({required this.genre, required this.count});
 
   factory GenreCount.fromJson(Map<String, dynamic> json) {
+    int parseInt(dynamic value) {
+      if (value == null) return 0;
+      if (value is int) return value;
+      if (value is String) return int.tryParse(value) ?? 0;
+      return 0;
+    }
+
     return GenreCount(
       genre: json['genre'] ?? '',
-      count: json['count'] ?? 0,
+      count: parseInt(json['count']),
     );
   }
 }
@@ -112,9 +133,16 @@ class PeriodStats {
   PeriodStats({required this.booksCompleted, required this.pagesRead});
 
   factory PeriodStats.fromJson(Map<String, dynamic> json) {
+    int parseInt(dynamic value) {
+      if (value == null) return 0;
+      if (value is int) return value;
+      if (value is String) return int.tryParse(value) ?? 0;
+      return 0;
+    }
+
     return PeriodStats(
-      booksCompleted: json['books_completed'] ?? 0,
-      pagesRead: json['pages_read'] ?? 0,
+      booksCompleted: parseInt(json['books_completed']),
+      pagesRead: parseInt(json['pages_read']),
     );
   }
 }

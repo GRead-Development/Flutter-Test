@@ -82,7 +82,6 @@ class BookSearchItem extends StatelessWidget {
   }
 
   void _selectBook(BuildContext context) {
-    print('_selectBook called for: ${book.title} (ID: ${book.id})');
     Navigator.pop(context, {
       'id': book.id,
       'title': book.title,

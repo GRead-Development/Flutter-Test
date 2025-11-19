@@ -22,12 +22,26 @@ class Book {
   });
 
   factory Book.fromJson(Map<String, dynamic> json) {
+    int parseInt(dynamic value) {
+      if (value == null) return 0;
+      if (value is int) return value;
+      if (value is String) return int.tryParse(value) ?? 0;
+      return 0;
+    }
+
+    int? parseIntOrNull(dynamic value) {
+      if (value == null) return null;
+      if (value is int) return value;
+      if (value is String) return int.tryParse(value);
+      return null;
+    }
+
     return Book(
-      id: json['id'] ?? json['book_id'] ?? 0,
+      id: parseInt(json['id'] ?? json['book_id']),
       title: json['title'] ?? '',
       author: json['author'] ?? '',
       isbn: json['isbn'],
-      pageCount: json['page_count'],
+      pageCount: parseIntOrNull(json['page_count']),
       description: json['description'] ?? json['content'],
       coverImage: json['cover_image'],
       permalink: json['permalink'],
@@ -75,14 +89,21 @@ class LibraryBook extends Book {
   });
 
   factory LibraryBook.fromJson(Map<String, dynamic> json) {
+    int parseInt(dynamic value) {
+      if (value == null) return 0;
+      if (value is int) return value;
+      if (value is String) return int.tryParse(value) ?? 0;
+      return 0;
+    }
+
     // Handle nested book structure from API
     final bookData = json['book'] as Map<String, dynamic>?;
     final useNestedStructure = bookData != null;
 
     final int pageCount = useNestedStructure
-        ? (bookData['page_count'] ?? 0)
-        : (json['page_count'] ?? 0);
-    final int currentPage = json['current_page'] ?? 0;
+        ? parseInt(bookData['page_count'])
+        : parseInt(json['page_count']);
+    final int currentPage = parseInt(json['current_page']);
 
     // Calculate progress percentage if not provided
     double progressPercentage = (json['progress_percentage'] ?? 0.0).toDouble();
@@ -92,8 +113,8 @@ class LibraryBook extends Book {
 
     return LibraryBook(
       id: useNestedStructure
-          ? (bookData['id'] ?? 0)
-          : (json['book_id'] ?? json['id'] ?? 0),
+          ? parseInt(bookData['id'])
+          : parseInt(json['book_id'] ?? json['id']),
       title: useNestedStructure
           ? (bookData['title'] ?? '')
           : (json['title'] ?? ''),

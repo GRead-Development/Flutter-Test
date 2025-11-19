@@ -18,6 +18,13 @@ class User {
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
+    int parseInt(dynamic value) {
+      if (value == null) return 0;
+      if (value is int) return value;
+      if (value is String) return int.tryParse(value) ?? 0;
+      return 0;
+    }
+
     String? avatarUrl;
 
     // Extract avatar URL from HTML if present
@@ -32,7 +39,7 @@ class User {
     }
 
     return User(
-      id: json['id'] ?? json['user_id'] ?? 0,
+      id: parseInt(json['id'] ?? json['user_id']),
       name: json['name'] ?? json['display_name'] ?? json['user_display_name'] ?? '',
       username: json['username'] ?? json['user_nicename'] ?? '',
       email: json['email'] ?? json['user_email'],

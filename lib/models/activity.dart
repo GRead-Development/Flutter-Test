@@ -26,6 +26,13 @@ class Activity {
   });
 
   factory Activity.fromJson(Map<String, dynamic> json) {
+    int parseInt(dynamic value) {
+      if (value == null) return 0;
+      if (value is int) return value;
+      if (value is String) return int.tryParse(value) ?? 0;
+      return 0;
+    }
+
     // Parse children - handle both List and Map formats
     List<Activity> childrenList = [];
     final childrenData = json['children'];
@@ -42,8 +49,8 @@ class Activity {
     }
 
     return Activity(
-      id: json['id'] ?? 0,
-      userId: json['user_id'] ?? 0,
+      id: parseInt(json['id']),
+      userId: parseInt(json['user_id']),
       component: json['component'] ?? '',
       type: json['type'] ?? '',
       action: json['action'] ?? '',
