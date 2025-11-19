@@ -158,21 +158,28 @@ class _NewActivityScreenState extends State<NewActivityScreen> {
   }
 
   Future<void> _postActivity() async {
-    if (_contentController.text.trim().isEmpty) {
+    final content = _contentController.text.trim();
+    print('Attempting to post activity with content: $content');
+
+    if (content.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please enter some content')),
       );
       return;
     }
 
+    print('Content is not empty, calling provider.postActivity...');
     final provider = Provider.of<ActivityProvider>(context, listen: false);
-    final success = await provider.postActivity(_contentController.text.trim());
+    final success = await provider.postActivity(content);
 
+    print('Post activity result: $success');
     if (!mounted) return;
 
     if (success) {
+      print('Post successful, closing screen');
       Navigator.of(context).pop(true);
     } else {
+      print('Post failed with error: ${provider.error}');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(provider.error ?? 'Failed to post activity'),
@@ -215,65 +222,57 @@ class _NewActivityScreenState extends State<NewActivityScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Expanded(
-              child: Stack(
-                children: [
-                  TextField(
-                    controller: _contentController,
-                    focusNode: _focusNode,
-                    maxLines: null,
-                    expands: true,
-                    textAlignVertical: TextAlignVertical.top,
-                    decoration: const InputDecoration(
-                      hintText: 'What\'s on your mind? Share a book update...',
-                      border: InputBorder.none,
-                    ),
-                  ),
-                  if (_showMentionSuggestions)
-                    Positioned(
-                      bottom: 0,
-                      left: 0,
-                      right: 0,
-                      child: Container(
-                        constraints: const BoxConstraints(maxHeight: 200),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          border: Border.all(color: Colors.grey[300]!),
-                          borderRadius: BorderRadius.circular(8),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.1),
-                              blurRadius: 4,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                        child: ListView.builder(
-                          shrinkWrap: true,
-                          itemCount: _mentionSuggestions.length,
-                          itemBuilder: (context, index) {
-                            final user = _mentionSuggestions[index];
-                            return ListTile(
-                              leading: CircleAvatar(
-                                backgroundImage: user['avatar_url'] != null
-                                    ? NetworkImage(user['avatar_url'])
-                                    : null,
-                                child: user['avatar_url'] == null
-                                    ? Text(
-                                        (user['display_name'] ?? '?')[0]
-                                            .toUpperCase())
-                                    : null,
-                              ),
-                              title: Text(user['display_name'] ?? ''),
-                              subtitle: Text('@${user['username'] ?? ''}'),
-                              onTap: () => _insertMention(user),
-                            );
-                          },
-                        ),
-                      ),
-                    ),
-                ],
+              child: TextField(
+                controller: _contentController,
+                focusNode: _focusNode,
+                maxLines: null,
+                expands: true,
+                textAlignVertical: TextAlignVertical.top,
+                decoration: const InputDecoration(
+                  hintText: 'What\'s on your mind? Share a book update...',
+                  border: InputBorder.none,
+                ),
               ),
             ),
+            if (_showMentionSuggestions)
+              Container(
+                constraints: const BoxConstraints(maxHeight: 200),
+                margin: const EdgeInsets.only(bottom: 8),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  border: Border.all(color: Colors.grey[300]!),
+                  borderRadius: BorderRadius.circular(8),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: _mentionSuggestions.length,
+                  itemBuilder: (context, index) {
+                    final user = _mentionSuggestions[index];
+                    return ListTile(
+                      leading: CircleAvatar(
+                        backgroundImage: user['avatar_url'] != null
+                            ? NetworkImage(user['avatar_url'])
+                            : null,
+                        child: user['avatar_url'] == null
+                            ? Text(
+                                (user['display_name'] ?? '?')[0]
+                                    .toUpperCase())
+                            : null,
+                      ),
+                      title: Text(user['display_name'] ?? ''),
+                      subtitle: Text('@${user['username'] ?? ''}'),
+                      onTap: () => _insertMention(user),
+                    );
+                  },
+                ),
+              ),
             const SizedBox(height: 16),
             Container(
               padding: const EdgeInsets.all(12),

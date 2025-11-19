@@ -101,11 +101,19 @@ class ApiService {
   }
 
   Future<Activity> postActivity(String content) async {
+    final url = '${ApiConfig.greadBaseUrl}/activity';
+    print('Posting activity to: $url');
+    print('Content: $content');
+    print('Using token: ${token != null ? "Yes" : "No"}');
+
     final response = await http.post(
-      Uri.parse('${ApiConfig.greadBaseUrl}/activity'),
+      Uri.parse(url),
       headers: _headers,
       body: jsonEncode({'content': content}),
     ).timeout(ApiConfig.requestTimeout);
+
+    print('Post activity response status: ${response.statusCode}');
+    print('Post activity response body: ${response.body}');
 
     if (response.statusCode == 200 || response.statusCode == 201) {
       return Activity.fromJson(jsonDecode(response.body));
