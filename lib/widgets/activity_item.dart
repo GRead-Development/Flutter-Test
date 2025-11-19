@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:gread_app/models/activity.dart';
 import 'package:gread_app/utils/html_utils.dart';
 import 'package:gread_app/utils/date_utils.dart' as app_date_utils;
+import 'package:gread_app/widgets/activity_content_with_mentions.dart';
 
 class ActivityItem extends StatelessWidget {
   final Activity activity;
@@ -54,9 +55,8 @@ class ActivityItem extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 12),
-            Text(
-              HtmlUtils.stripHtml(activity.content),
-              style: const TextStyle(fontSize: 15),
+            ActivityContentWithMentions(
+              content: HtmlUtils.stripHtml(activity.content),
             ),
             if (activity.children.isNotEmpty) ...[
               const SizedBox(height: 12),
