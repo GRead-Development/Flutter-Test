@@ -8,8 +8,13 @@ import 'package:gread_app/models/book.dart';
 
 class ActivityContentWithMentions extends StatelessWidget {
   final String content;
+  final double fontSize;
 
-  const ActivityContentWithMentions({super.key, required this.content});
+  const ActivityContentWithMentions({
+    super.key,
+    required this.content,
+    this.fontSize = 15,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -19,7 +24,7 @@ class ActivityContentWithMentions extends StatelessWidget {
       // No mentions, just display plain text
       return Text(
         content,
-        style: const TextStyle(fontSize: 15),
+        style: TextStyle(fontSize: fontSize),
       );
     }
 
@@ -59,7 +64,7 @@ class ActivityContentWithMentions extends StatelessWidget {
 
     return RichText(
       text: TextSpan(
-        style: const TextStyle(fontSize: 15, color: Colors.black87),
+        style: TextStyle(fontSize: fontSize, color: Colors.black87),
         children: spans,
       ),
     );

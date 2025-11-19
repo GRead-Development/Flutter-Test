@@ -3,6 +3,9 @@ class HtmlUtils {
     // Remove HTML tags
     String text = html.replaceAll(RegExp(r'<[^>]*>'), '');
 
+    // Remove backslash escaping (WordPress adds these)
+    text = text.replaceAll(r'\"', '"').replaceAll(r"\'", "'");
+
     // Decode common HTML entities
     text = text
         .replaceAll('&amp;', '&')
@@ -10,7 +13,9 @@ class HtmlUtils {
         .replaceAll('&gt;', '>')
         .replaceAll('&quot;', '"')
         .replaceAll('&#039;', "'")
-        .replaceAll('&nbsp;', ' ');
+        .replaceAll('&#39;', "'")
+        .replaceAll('&nbsp;', ' ')
+        .replaceAll('&apos;', "'");
 
     return text.trim();
   }

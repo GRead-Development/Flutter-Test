@@ -122,6 +122,27 @@ class ApiService {
     }
   }
 
+  Future<Activity> postActivityComment(int activityId, String content) async {
+    final url = '${ApiConfig.greadBaseUrl}/activity/$activityId/comment';
+    print('Posting comment to activity $activityId');
+    print('Comment content: $content');
+
+    final response = await http.post(
+      Uri.parse(url),
+      headers: _headers,
+      body: jsonEncode({'content': content}),
+    ).timeout(ApiConfig.requestTimeout);
+
+    print('Post comment response status: ${response.statusCode}');
+    print('Post comment response body: ${response.body}');
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      return Activity.fromJson(jsonDecode(response.body));
+    } else {
+      throw Exception('Failed to post comment: ${response.body}');
+    }
+  }
+
   // Members
   Future<User> getMember(int userId) async {
     final response = await http.get(
