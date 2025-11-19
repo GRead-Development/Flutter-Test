@@ -65,6 +65,7 @@ class LibraryBookItem extends StatelessWidget {
           ),
         ],
       ),
+      onTap: () => _showBookDetails(context),
     );
   }
 
@@ -214,6 +215,83 @@ class LibraryBookItem extends StatelessWidget {
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
             child: const Text('Remove'),
           ),
+        ],
+      ),
+    );
+  }
+
+  void _showBookDetails(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(book.title),
+        content: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (book.coverImage != null)
+                Center(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Image.network(
+                      book.coverImage!,
+                      height: 200,
+                      errorBuilder: (_, __, ___) => Container(
+                        width: 150,
+                        height: 200,
+                        decoration: BoxDecoration(
+                          color: Colors.grey[300],
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              const SizedBox(height: 16),
+              _buildDetailRow('Author', book.author),
+              if (book.isbn != null) _buildDetailRow('ISBN', book.isbn!),
+              if (book.pageCount != null)
+                _buildDetailRow('Pages', book.pageCount.toString()),
+              if (book.publicationYear != null)
+                _buildDetailRow('Published', book.publicationYear!),
+              if (book.description != null &&
+                  book.description != 'No description available.') ...[
+                const SizedBox(height: 8),
+                const Text(
+                  'Description:',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 4),
+                Text(book.description!),
+              ],
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDetailRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 80,
+            child: Text(
+              '$label:',
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ),
+          Expanded(child: Text(value)),
         ],
       ),
     );
