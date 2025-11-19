@@ -267,14 +267,11 @@ class _NewActivityScreenState extends State<NewActivityScreen> {
                     final user = _mentionSuggestions[index];
                     return ListTile(
                       leading: CircleAvatar(
-                        backgroundImage: user['avatar_url'] != null
-                            ? NetworkImage(user['avatar_url'])
-                            : null,
-                        child: user['avatar_url'] == null
-                            ? Text(
-                                (user['display_name'] ?? '?')[0]
-                                    .toUpperCase())
-                            : null,
+                        backgroundColor: Theme.of(context).colorScheme.primary,
+                        child: Text(
+                          (user['display_name'] ?? '?')[0].toUpperCase(),
+                          style: const TextStyle(color: Colors.white),
+                        ),
                       ),
                       title: Text(user['display_name'] ?? ''),
                       subtitle: Text('@${user['username'] ?? ''}'),
