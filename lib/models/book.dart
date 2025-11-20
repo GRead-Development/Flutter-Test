@@ -111,6 +111,14 @@ class LibraryBook extends Book {
       progressPercentage = (currentPage / pageCount * 100).clamp(0.0, 100.0);
     }
 
+    // Auto-determine status based on progress
+    String status = json['status'] ?? 'want_to_read';
+    if (pageCount > 0 && currentPage >= pageCount) {
+      status = 'completed';
+    } else if (currentPage > 0 && status == 'want_to_read') {
+      status = 'reading';
+    }
+
     return LibraryBook(
       id: useNestedStructure
           ? parseInt(bookData['id'])
@@ -131,7 +139,7 @@ class LibraryBook extends Book {
       publicationYear: useNestedStructure ? bookData['publication_year'] : json['publication_year'],
       currentPage: currentPage,
       progressPercentage: progressPercentage,
-      status: json['status'] ?? 'want_to_read',
+      status: status,
       addedDate: json['added_date'],
       lastUpdated: json['last_updated'],
     );

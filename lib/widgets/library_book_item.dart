@@ -164,18 +164,47 @@ class LibraryBookItem extends StatelessWidget {
               if (page != null) {
                 final provider =
                     Provider.of<LibraryProvider>(context, listen: false);
+
+                // Check if book is being completed
+                final isCompleting = book.pageCount != null &&
+                                     book.pageCount! > 0 &&
+                                     page >= book.pageCount!;
+
                 final success = await provider.updateProgress(book.id, page);
 
                 if (context.mounted) {
                   Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(success
-                          ? 'Progress updated'
-                          : 'Failed to update progress'),
-                      backgroundColor: success ? Colors.green : Colors.red,
-                    ),
-                  );
+
+                  if (success && isCompleting) {
+                    // Show completion celebration
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Row(
+                          children: [
+                            const Icon(Icons.celebration, color: Colors.white),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                'Congratulations! You completed "${book.title}"! 🎉',
+                                style: const TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                          ],
+                        ),
+                        backgroundColor: Colors.green,
+                        duration: const Duration(seconds: 4),
+                      ),
+                    );
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(success
+                            ? 'Progress updated'
+                            : 'Failed to update progress'),
+                        backgroundColor: success ? Colors.green : Colors.red,
+                      ),
+                    );
+                  }
                 }
               }
             },
