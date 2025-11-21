@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:gread_app/providers/auth_provider.dart';
 import 'package:gread_app/services/api_service.dart';
 import 'package:gread_app/models/user_stats.dart';
+import 'package:gread_app/widgets/user_avatar.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -68,20 +69,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: Column(
                 children: [
                   const SizedBox(height: 20),
-                  CircleAvatar(
-                    radius: 50,
-                    backgroundColor: Theme.of(context).colorScheme.primary,
-                    child: Text(
-                      (authProvider.displayName ?? authProvider.username ?? 'U')
-                          .substring(0, 1)
-                          .toUpperCase(),
-                      style: const TextStyle(
-                        fontSize: 40,
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
+                  if (authProvider.userId != null)
+                    UserAvatar(
+                      userId: authProvider.userId!,
+                      displayName: authProvider.displayName ?? authProvider.username ?? 'User',
+                      radius: 50,
+                      useThumb: false, // Use full size for profile
+                    )
+                  else
+                    CircleAvatar(
+                      radius: 50,
+                      backgroundColor: Theme.of(context).colorScheme.primary,
+                      child: Text(
+                        (authProvider.displayName ?? authProvider.username ?? 'U')
+                            .substring(0, 1)
+                            .toUpperCase(),
+                        style: const TextStyle(
+                          fontSize: 40,
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
-                  ),
                   const SizedBox(height: 16),
                   Text(
                     authProvider.displayName ?? authProvider.username ?? 'User',
@@ -229,28 +238,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   icon: Icons.stars,
                   color: Colors.orange,
                 ),
-                const Divider(height: 24),
-                _buildStatRow(
-                  'Currently Reading',
-                  stats.statistics.currentlyReading.toString(),
-                ),
-                _buildStatRow(
-                  'Books in Library',
-                  stats.statistics.booksInLibrary.toString(),
-                ),
-                _buildStatRow(
-                  'Reading Streak',
-                  '${stats.statistics.readingStreakDays} days',
-                ),
-                _buildStatRow(
-                  'Achievements Unlocked',
-                  stats.statistics.achievementsUnlocked.toString(),
-                ),
-                if (stats.statistics.averagePagesPerBook > 0)
-                  _buildStatRow(
-                    'Average Book Length',
-                    '${stats.statistics.averagePagesPerBook} pages',
-                  ),
               ],
             ),
           ),

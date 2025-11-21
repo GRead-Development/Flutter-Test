@@ -100,6 +100,39 @@ class ApiService {
     }
   }
 
+  Future<Activity> getSingleActivity(int activityId) async {
+    // Use display_comments=stream to get comments included
+    final url = '${ApiConfig.buddypressBaseUrl}/activity/$activityId?display_comments=stream';
+    print('Fetching activity from: $url');
+
+    final response = await http.get(
+      Uri.parse(url),
+      headers: _headers,
+    ).timeout(ApiConfig.requestTimeout);
+
+    print('Get single activity response status: ${response.statusCode}');
+
+    if (response.statusCode == 200) {
+      final dynamic data = jsonDecode(response.body);
+
+      // BuddyPress API returns array with single activity
+      if (data is List && data.isNotEmpty) {
+        final activity = data[0] as Map<String, dynamic>;
+        // Ensure children is a list
+        if (activity['children'] == null) {
+          activity['children'] = [];
+        } else if (activity['children'] is Map) {
+          activity['children'] = [];
+        }
+        return Activity.fromJson(activity);
+      } else {
+        throw Exception('Unexpected activity response format: expected List, got ${data.runtimeType}');
+      }
+    } else {
+      throw Exception('Failed to load activity: ${response.body}');
+    }
+  }
+
   Future<Activity> postActivity(String content) async {
     final url = '${ApiConfig.greadBaseUrl}/activity';
     print('Posting activity to: $url');
@@ -157,6 +190,28 @@ class ApiService {
     }
   }
 
+  Future<Map<String, String>> getMemberAvatar(int userId) async {
+    final response = await http.get(
+      Uri.parse('${ApiConfig.buddypressBaseUrl}/members/$userId/avatar?html=false'),
+      headers: _headers,
+    ).timeout(ApiConfig.requestTimeout);
+
+    if (response.statusCode == 200) {
+      // API returns an array with a single object containing full and thumb URLs
+      final List<dynamic> dataList = jsonDecode(response.body);
+      if (dataList.isNotEmpty && dataList[0] is Map<String, dynamic>) {
+        final data = dataList[0] as Map<String, dynamic>;
+        return {
+          'full': data['full'] ?? '',
+          'thumb': data['thumb'] ?? '',
+        };
+      }
+      return {'full': '', 'thumb': ''};
+    } else {
+      throw Exception('Failed to load avatar: ${response.body}');
+    }
+  }
+
   Future<List<User>> getMembers({int page = 1, int perPage = 20}) async {
     final response = await http.get(
       Uri.parse('${ApiConfig.greadBaseUrl}/members?page=$page&per_page=$perPage'),
@@ -173,10 +228,16 @@ class ApiService {
 
   // User Stats
   Future<UserStats> getUserStats(int userId) async {
+    final url = '${ApiConfig.greadBaseUrl}/user/$userId/stats';
+    print('Fetching user stats from: $url');
+
     final response = await http.get(
-      Uri.parse('${ApiConfig.greadBaseUrl}/user/$userId/stats'),
+      Uri.parse(url),
       headers: _headers,
     ).timeout(ApiConfig.requestTimeout);
+
+    print('User stats response status: ${response.statusCode}');
+    print('User stats response body: ${response.body}');
 
     if (response.statusCode == 200) {
       return UserStats.fromJson(jsonDecode(response.body));

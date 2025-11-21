@@ -4,6 +4,7 @@ import 'package:gread_app/models/user.dart';
 import 'package:gread_app/models/user_stats.dart';
 import 'package:gread_app/services/api_service.dart';
 import 'package:gread_app/providers/auth_provider.dart';
+import 'package:gread_app/widgets/user_avatar.dart';
 
 class UserProfileScreen extends StatefulWidget {
   final int userId;
@@ -36,8 +37,12 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       final apiService = ApiService(token: authProvider.token);
 
+      print('Loading user profile for userId: ${widget.userId}');
       final user = await apiService.getMember(widget.userId);
+      print('User loaded: ${user.name}');
+
       final stats = await apiService.getUserStats(widget.userId);
+      print('Stats loaded: ${stats.statistics.booksRead} books read');
 
       setState(() {
         _user = user;
@@ -45,6 +50,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         _isLoading = false;
       });
     } catch (e) {
+      print('Error loading user profile: $e');
       setState(() {
         _error = e.toString();
         _isLoading = false;
@@ -92,19 +98,11 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     return Column(
       children: [
         const SizedBox(height: 20),
-        CircleAvatar(
+        UserAvatar(
+          userId: _user!.id,
+          displayName: _user!.name,
           radius: 50,
-          backgroundColor: Theme.of(context).colorScheme.primary,
-          child: Text(
-            _user!.name.isNotEmpty
-                ? _user!.name.substring(0, 1).toUpperCase()
-                : 'U',
-            style: const TextStyle(
-              fontSize: 40,
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
+          useThumb: false, // Use full size for profile
         ),
         const SizedBox(height: 16),
         Text(
@@ -207,28 +205,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                   icon: Icons.stars,
                   color: Colors.orange,
                 ),
-                const Divider(height: 24),
-                _buildStatRow(
-                  'Currently Reading',
-                  stats.statistics.currentlyReading.toString(),
-                ),
-                _buildStatRow(
-                  'Books in Library',
-                  stats.statistics.booksInLibrary.toString(),
-                ),
-                _buildStatRow(
-                  'Reading Streak',
-                  '${stats.statistics.readingStreakDays} days',
-                ),
-                _buildStatRow(
-                  'Achievements Unlocked',
-                  stats.statistics.achievementsUnlocked.toString(),
-                ),
-                if (stats.statistics.averagePagesPerBook > 0)
-                  _buildStatRow(
-                    'Average Book Length',
-                    '${stats.statistics.averagePagesPerBook} pages',
-                  ),
               ],
             ),
           ),

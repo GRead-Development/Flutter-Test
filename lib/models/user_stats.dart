@@ -21,10 +21,34 @@ class UserStats {
       return 0;
     }
 
+    // Handle both nested statistics object and flat response
+    final statisticsData = json['statistics'] as Map<String, dynamic>?;
+
+    // If statistics object exists, use it; otherwise use flat structure
+    final Statistics statistics;
+    if (statisticsData != null) {
+      statistics = Statistics.fromJson(statisticsData);
+    } else {
+      // Map flat response to Statistics object
+      statistics = Statistics.fromJson({
+        'books_read': json['books_completed'] ?? 0,
+        'pages_read': json['pages_read'] ?? 0,
+        'books_in_library': json['books_in_library'] ?? 0,
+        'currently_reading': json['currently_reading'] ?? 0,
+        'books_added_to_db': json['books_added'] ?? 0,
+        'average_pages_per_book': json['average_pages_per_book'] ?? 0,
+        'reading_streak_days': json['reading_streak_days'] ?? 0,
+        'achievements_unlocked': json['achievements_unlocked'] ?? 0,
+        'total_achievement_points': json['points'] ?? 0,
+        'member_since': json['member_since'],
+        'last_activity': json['last_activity'],
+      });
+    }
+
     return UserStats(
       userId: parseUserId(json['user_id']),
-      username: json['username'] ?? '',
-      statistics: Statistics.fromJson(json['statistics'] ?? {}),
+      username: json['username'] ?? json['display_name'] ?? '',
+      statistics: statistics,
       favoriteGenres: (json['favorite_genres'] as List<dynamic>?)
               ?.map((e) => GenreCount.fromJson(e as Map<String, dynamic>))
               .toList() ??

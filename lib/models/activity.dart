@@ -33,6 +33,19 @@ class Activity {
       return 0;
     }
 
+    String parseString(dynamic value) {
+      if (value == null) return '';
+      if (value is String) return value;
+      if (value is Map) {
+        // WordPress/BuddyPress often returns {'rendered': 'actual content'}
+        if (value.containsKey('rendered')) {
+          return value['rendered']?.toString() ?? '';
+        }
+        return value.toString();
+      }
+      return value.toString();
+    }
+
     // Parse children - handle both List and Map formats
     List<Activity> childrenList = [];
     final childrenData = json['children'];
@@ -51,14 +64,14 @@ class Activity {
     return Activity(
       id: parseInt(json['id']),
       userId: parseInt(json['user_id']),
-      component: json['component'] ?? '',
-      type: json['type'] ?? '',
-      action: json['action'] ?? '',
-      content: json['content'] ?? '',
-      primaryLink: json['primary_link'] ?? '',
-      dateRecorded: json['date_recorded'] ?? '',
-      displayName: json['display_name'] ?? '',
-      userFullname: json['user_fullname'] ?? '',
+      component: parseString(json['component']),
+      type: parseString(json['type']),
+      action: parseString(json['action']),
+      content: parseString(json['content']),
+      primaryLink: parseString(json['primary_link']),
+      dateRecorded: parseString(json['date_recorded']),
+      displayName: parseString(json['display_name']),
+      userFullname: parseString(json['user_fullname']),
       children: childrenList,
     );
   }

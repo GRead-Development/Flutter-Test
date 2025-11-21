@@ -24,7 +24,10 @@ class ActivityContentWithMentions extends StatelessWidget {
       // No mentions, just display plain text
       return Text(
         content,
-        style: TextStyle(fontSize: fontSize),
+        style: TextStyle(
+          fontSize: fontSize,
+          color: DefaultTextStyle.of(context).style.color,
+        ),
       );
     }
 
@@ -64,7 +67,10 @@ class ActivityContentWithMentions extends StatelessWidget {
 
     return RichText(
       text: TextSpan(
-        style: TextStyle(fontSize: fontSize, color: Colors.black87),
+        style: TextStyle(
+          fontSize: fontSize,
+          color: DefaultTextStyle.of(context).style.color,
+        ),
         children: spans,
       ),
     );

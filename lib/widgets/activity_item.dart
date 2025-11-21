@@ -6,6 +6,7 @@ import 'package:gread_app/utils/date_utils.dart' as app_date_utils;
 import 'package:gread_app/widgets/activity_content_with_mentions.dart';
 import 'package:gread_app/providers/activity_provider.dart';
 import 'package:gread_app/screens/profile/user_profile_screen.dart';
+import 'package:gread_app/widgets/user_avatar.dart';
 
 class ActivityItem extends StatefulWidget {
   final Activity activity;
@@ -93,15 +94,10 @@ class _ActivityItemState extends State<ActivityItem> {
                 InkWell(
                   onTap: () => _navigateToUserProfile(context),
                   borderRadius: BorderRadius.circular(20),
-                  child: CircleAvatar(
+                  child: UserAvatar(
+                    userId: widget.activity.userId,
+                    displayName: widget.activity.userFullname,
                     radius: 20,
-                    backgroundColor: Theme.of(context).colorScheme.primary,
-                    child: Text(
-                      widget.activity.userFullname.isNotEmpty
-                          ? widget.activity.userFullname.substring(0, 1).toUpperCase()
-                          : 'U',
-                      style: const TextStyle(color: Colors.white),
-                    ),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -135,65 +131,66 @@ class _ActivityItemState extends State<ActivityItem> {
             ActivityContentWithMentions(
               content: HtmlUtils.stripHtml(widget.activity.content),
             ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                TextButton.icon(
-                  onPressed: () {
-                    setState(() {
-                      _showCommentInput = !_showCommentInput;
-                    });
-                  },
-                  icon: const Icon(Icons.comment_outlined, size: 18),
-                  label: Text(widget.activity.children.isEmpty
-                      ? 'Comment'
-                      : '${widget.activity.children.length} comments'),
-                  style: TextButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                  ),
-                ),
-              ],
-            ),
-            if (_showCommentInput) ...[
-              const SizedBox(height: 8),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _commentController,
-                      decoration: InputDecoration(
-                        hintText: 'Write a comment...',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 8,
-                        ),
-                      ),
-                      maxLines: null,
-                      enabled: !_isSubmitting,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  IconButton(
-                    onPressed: _isSubmitting ? null : _submitComment,
-                    icon: _isSubmitting
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : const Icon(Icons.send),
-                    style: IconButton.styleFrom(
-                      backgroundColor: Theme.of(context).colorScheme.primary,
-                      foregroundColor: Colors.white,
-                    ),
-                  ),
-                ],
-              ),
-            ],
+            // Commenting functionality disabled
+            // const SizedBox(height: 8),
+            // Row(
+            //   children: [
+            //     TextButton.icon(
+            //       onPressed: () {
+            //         setState(() {
+            //           _showCommentInput = !_showCommentInput;
+            //         });
+            //       },
+            //       icon: const Icon(Icons.comment_outlined, size: 18),
+            //       label: Text(widget.activity.children.isEmpty
+            //           ? 'Comment'
+            //           : '${widget.activity.children.length} comments'),
+            //       style: TextButton.styleFrom(
+            //         padding: const EdgeInsets.symmetric(horizontal: 8),
+            //       ),
+            //     ),
+            //   ],
+            // ),
+            // if (_showCommentInput) ...[
+            //   const SizedBox(height: 8),
+            //   Row(
+            //     crossAxisAlignment: CrossAxisAlignment.start,
+            //     children: [
+            //       Expanded(
+            //         child: TextField(
+            //           controller: _commentController,
+            //           decoration: InputDecoration(
+            //             hintText: 'Write a comment...',
+            //             border: OutlineInputBorder(
+            //               borderRadius: BorderRadius.circular(20),
+            //             ),
+            //             contentPadding: const EdgeInsets.symmetric(
+            //               horizontal: 16,
+            //               vertical: 8,
+            //             ),
+            //           ),
+            //           maxLines: null,
+            //           enabled: !_isSubmitting,
+            //         ),
+            //       ),
+            //       const SizedBox(width: 8),
+            //       IconButton(
+            //         onPressed: _isSubmitting ? null : _submitComment,
+            //         icon: _isSubmitting
+            //             ? const SizedBox(
+            //                 width: 20,
+            //                 height: 20,
+            //                 child: CircularProgressIndicator(strokeWidth: 2),
+            //               )
+            //             : const Icon(Icons.send),
+            //         style: IconButton.styleFrom(
+            //           backgroundColor: Theme.of(context).colorScheme.primary,
+            //           foregroundColor: Colors.white,
+            //         ),
+            //       ),
+            //     ],
+            //   ),
+            // ],
             if (widget.activity.children.isNotEmpty) ...[
               const SizedBox(height: 12),
               ...widget.activity.children.map((comment) => _buildComment(comment)),
@@ -212,9 +209,15 @@ class _ActivityItemState extends State<ActivityItem> {
           margin: const EdgeInsets.only(left: 32, top: 8),
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: Colors.grey[50],
+            color: Theme.of(context).brightness == Brightness.dark
+                ? Colors.grey[800]
+                : Colors.grey[50],
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.grey[200]!),
+            border: Border.all(
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? Colors.grey[700]!
+                  : Colors.grey[200]!,
+            ),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -224,15 +227,10 @@ class _ActivityItemState extends State<ActivityItem> {
                   InkWell(
                     onTap: () => _navigateToCommentUserProfile(context, comment.userId),
                     borderRadius: BorderRadius.circular(12),
-                    child: CircleAvatar(
+                    child: UserAvatar(
+                      userId: comment.userId,
+                      displayName: comment.userFullname,
                       radius: 12,
-                      backgroundColor: Theme.of(context).colorScheme.secondary,
-                      child: Text(
-                        comment.userFullname.isNotEmpty
-                            ? comment.userFullname.substring(0, 1).toUpperCase()
-                            : 'U',
-                        style: const TextStyle(color: Colors.white, fontSize: 10),
-                      ),
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -263,9 +261,17 @@ class _ActivityItemState extends State<ActivityItem> {
                 ],
               ),
               const SizedBox(height: 8),
-              ActivityContentWithMentions(
-                content: HtmlUtils.stripHtml(comment.content),
-                fontSize: 14,
+              DefaultTextStyle(
+                style: TextStyle(
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? Colors.white
+                      : Colors.black87,
+                  fontSize: 14,
+                ),
+                child: ActivityContentWithMentions(
+                  content: HtmlUtils.stripHtml(comment.content),
+                  fontSize: 14,
+                ),
               ),
             ],
           ),
@@ -283,9 +289,15 @@ class _ActivityItemState extends State<ActivityItem> {
       margin: const EdgeInsets.only(left: 64, top: 8),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.blue[25],
+        color: Theme.of(context).brightness == Brightness.dark
+            ? Colors.blue[900]?.withOpacity(0.3)
+            : Colors.blue[25],
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.blue[100]!),
+        border: Border.all(
+          color: Theme.of(context).brightness == Brightness.dark
+              ? Colors.blue[700]!
+              : Colors.blue[100]!,
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -295,15 +307,10 @@ class _ActivityItemState extends State<ActivityItem> {
               InkWell(
                 onTap: () => _navigateToCommentUserProfile(context, reply.userId),
                 borderRadius: BorderRadius.circular(10),
-                child: CircleAvatar(
+                child: UserAvatar(
+                  userId: reply.userId,
+                  displayName: reply.userFullname,
                   radius: 10,
-                  backgroundColor: Theme.of(context).colorScheme.tertiary,
-                  child: Text(
-                    reply.userFullname.isNotEmpty
-                        ? reply.userFullname.substring(0, 1).toUpperCase()
-                        : 'U',
-                    style: const TextStyle(color: Colors.white, fontSize: 9),
-                  ),
                 ),
               ),
               const SizedBox(width: 8),
@@ -334,9 +341,17 @@ class _ActivityItemState extends State<ActivityItem> {
             ],
           ),
           const SizedBox(height: 6),
-          ActivityContentWithMentions(
-            content: HtmlUtils.stripHtml(reply.content),
-            fontSize: 13,
+          DefaultTextStyle(
+            style: TextStyle(
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? Colors.white
+                  : Colors.black87,
+              fontSize: 13,
+            ),
+            child: ActivityContentWithMentions(
+              content: HtmlUtils.stripHtml(reply.content),
+              fontSize: 13,
+            ),
           ),
         ],
       ),

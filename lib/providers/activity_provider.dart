@@ -147,33 +147,42 @@ class ActivityProvider with ChangeNotifier {
 
   Future<bool> postComment(int activityId, String content) async {
     try {
-      final comment = await _apiService.postActivityComment(activityId, content);
+      print('Posting comment to activity $activityId: $content');
+      await _apiService.postActivityComment(activityId, content);
+      print('Comment posted successfully, fetching updated activity...');
 
-      // Find the parent activity and add the comment to it
+      // Re-fetch the activity to get the updated comments
+      final updatedActivity = await _apiService.getSingleActivity(activityId);
+      print('Fetched updated activity with ${updatedActivity.children.length} comments');
+
+      // Find and update the activity in the list
       final activityIndex = _activities.indexWhere((a) => a.id == activityId);
+      print('Found activity at index: $activityIndex');
+
       if (activityIndex != -1) {
-        final updatedChildren = List<Activity>.from(_activities[activityIndex].children);
-        updatedChildren.add(comment);
+        // Sort children (comments) by date - oldest first
+        final sortedChildren = List<Activity>.from(updatedActivity.children);
+        sortedChildren.sort((a, b) => a.dateRecorded.compareTo(b.dateRecorded));
 
-        // Sort comments by date (oldest first)
-        updatedChildren.sort((a, b) => a.dateRecorded.compareTo(b.dateRecorded));
-
-        // Create a new activity with updated children
+        // Replace the activity with the updated one
         _activities[activityIndex] = Activity(
-          id: _activities[activityIndex].id,
-          userId: _activities[activityIndex].userId,
-          component: _activities[activityIndex].component,
-          type: _activities[activityIndex].type,
-          action: _activities[activityIndex].action,
-          content: _activities[activityIndex].content,
-          primaryLink: _activities[activityIndex].primaryLink,
-          dateRecorded: _activities[activityIndex].dateRecorded,
-          displayName: _activities[activityIndex].displayName,
-          userFullname: _activities[activityIndex].userFullname,
-          children: updatedChildren,
+          id: updatedActivity.id,
+          userId: updatedActivity.userId,
+          component: updatedActivity.component,
+          type: updatedActivity.type,
+          action: updatedActivity.action,
+          content: updatedActivity.content,
+          primaryLink: updatedActivity.primaryLink,
+          dateRecorded: updatedActivity.dateRecorded,
+          displayName: updatedActivity.displayName,
+          userFullname: updatedActivity.userFullname,
+          children: sortedChildren,
         );
 
+        print('Updated activity with ${sortedChildren.length} children, notifying listeners');
         notifyListeners();
+      } else {
+        print('WARNING: Could not find activity with id $activityId');
       }
 
       return true;
